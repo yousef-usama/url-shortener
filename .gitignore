@@ -1,0 +1,26 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfvars
+.terraform.lock.hcl
+tfplan
+
+# Lambda build artefacts
+lambda/handler.zip
+lambda/__pycache__/
+lambda/tests/__pycache__/
+**/*.pyc
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
