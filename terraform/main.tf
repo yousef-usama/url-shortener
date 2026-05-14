@@ -18,12 +18,11 @@ terraform {
   }
 
   # ── Remote state (S3 backend) ──────────────────────────────
-  # Uncomment this block after running bootstrap/bootstrap.sh
-  # backend "s3" {
-  #   bucket = "url-shortener-tfstate-<your-account-id>"
-  #   key    = "url-shortener/terraform.tfstate"
-  #   region = "eu-central-1"
-  # }
+  backend "s3" {
+    bucket = "url-shortener-tfstate-339712755065"
+    key    = "url-shortener/terraform.tfstate"
+    region = "eu-central-1"
+  }
 }
 
 provider "aws" {
