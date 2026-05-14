@@ -302,6 +302,9 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_resource.shorten,
       aws_api_gateway_method.shorten_post,
       aws_api_gateway_integration.shorten_post,
+      aws_api_gateway_method.shorten_options,
+      aws_api_gateway_integration.shorten_options,
+      aws_api_gateway_integration_response.shorten_options,
       aws_api_gateway_resource.code,
       aws_api_gateway_method.code_get,
       aws_api_gateway_integration.code_get,
@@ -314,6 +317,8 @@ resource "aws_api_gateway_deployment" "api" {
 
   depends_on = [
     aws_api_gateway_integration.shorten_post,
+    aws_api_gateway_integration.shorten_options,
+    aws_api_gateway_integration_response.shorten_options,
     aws_api_gateway_integration.code_get,
   ]
 }
