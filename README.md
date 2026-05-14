@@ -7,6 +7,8 @@ Send a long URL, get a short one back. Click the short URL, get redirected insta
 
 ## Architecture
 
+![My Image Description](images/URL-Shortener.png)
+
 ```
                         ┌─────────────────────────────────────────┐
                         │              AWS Cloud                   │
