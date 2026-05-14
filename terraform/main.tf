@@ -17,11 +17,13 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket = "url-shortener-tfstate-339712755065"
-    key    = "url-shortener/terraform.tfstate"
-    region = "eu-central-1"
-  }
+  # ── Remote state (S3 backend) ──────────────────────────────
+  # Uncomment this block after running bootstrap/bootstrap.sh
+  # backend "s3" {
+  #   bucket = "url-shortener-tfstate-<your-account-id>"
+  #   key    = "url-shortener/terraform.tfstate"
+  #   region = "eu-central-1"
+  # }
 }
 
 provider "aws" {
@@ -94,6 +96,34 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 resource "aws_iam_role" "lambda_exec" {
   name               = "${var.project_name}-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+# ── API Gateway account-level CloudWatch role ──────────────────────────────
+# API Gateway requires a CloudWatch Logs role to be set at the account level
+
+data "aws_iam_policy_document" "apigw_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "apigw_cloudwatch" {
+  name               = "${var.project_name}-apigw-cloudwatch-role"
+  assume_role_policy = data.aws_iam_policy_document.apigw_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "apigw_cloudwatch" {
+  role       = aws_iam_role.apigw_cloudwatch.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+resource "aws_api_gateway_account" "main" {
+  cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch.arn
 }
 
 # CloudWatch Logs – basic Lambda logging
@@ -252,6 +282,8 @@ resource "aws_api_gateway_stage" "prod" {
   deployment_id = aws_api_gateway_deployment.api.id
   rest_api_id   = aws_api_gateway_rest_api.api.id
   stage_name    = "prod"
+
+  depends_on = [aws_api_gateway_account.main]
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw.arn
