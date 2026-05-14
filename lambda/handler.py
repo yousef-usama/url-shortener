@@ -10,6 +10,13 @@ table = dynamodb.Table(os.environ["TABLE_NAME"])
 BASE_URL = os.environ["BASE_URL"]  # injected by Terraform
 
 
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+}
+
+
 def generate_short_code(length=7):
     chars = string.ascii_letters + string.digits
     return "".join(random.choices(chars, k=length))
@@ -28,7 +35,7 @@ def create_short_url(long_url: str) -> dict:
     table.put_item(Item={"short_code": code, "long_url": long_url})
     return {
         "statusCode": 201,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {"Content-Type": "application/json", **CORS_HEADERS},
         "body": json.dumps({
             "short_url": f"{BASE_URL}/{code}",
             "short_code": code,
@@ -43,12 +50,12 @@ def redirect(short_code: str) -> dict:
     if not item:
         return {
             "statusCode": 404,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {"Content-Type": "application/json", **CORS_HEADERS},
             "body": json.dumps({"error": "Short URL not found."}),
         }
     return {
         "statusCode": 301,
-        "headers": {"Location": item["long_url"]},
+        "headers": {"Location": item["long_url"], **CORS_HEADERS},
         "body": "",
     }
 
@@ -79,6 +86,6 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 400,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {"Content-Type": "application/json", **CORS_HEADERS},
         "body": json.dumps({"error": "Invalid route. Use POST /shorten or GET /{code}"}),
     }
